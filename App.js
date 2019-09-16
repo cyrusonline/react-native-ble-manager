@@ -57,7 +57,7 @@ BleManager.start({showAlert: false})
 
 const App = () => {
 const [is_scanning, setScanState] = useState(false)
-const [peripherals, setPheripherals] = useState(['kkk'])
+const [peripherals, setPheripherals] = useState([])
 
 if(Platform.OS === 'android' && Platform.Version >= 23){
   PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
@@ -71,31 +71,46 @@ if(Platform.OS === 'android' && Platform.Version >= 23){
 });
 }
 bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral) => {
+  console.log('peripheral',peripheral)
+  // var peripherals = [];
 
-  var peripherals = peripherals; // get the peripherals
-  // check if the peripheral already exists 
-  var el = peripherals.filter((el) => {
-    return el.id === peripheral.id;
-  });
+  peripherals.push(peripheral)
+  console.log('total',peripherals)
+  
+  //  setPheripherals(peripherals)
+//   var peripherals = []; // get the peripherals
+//   // check if the peripheral already exists 
+//  console.log('pheriphals',JSON.stringify(peripheral))
+//   peripherals.push({
+//       id: peripheral.id, // mac address of the peripheral
+//       name: peripheral.name // descriptive name given to the peripheral
+//     });
+//     peripherals = peripherals; 
+  // var el = peripherals.filter((el) => {
+  //   return el.id === peripheral.id;
+  // });
 
-  if(!el.length){
-    peripherals.push({
-      id: peripheral.id, // mac address of the peripheral
-      name: peripheral.name // descriptive name given to the peripheral
-    });
-    peripherals = peripherals; // update the array of peripherals
-  }
+  // if(!el.length){
+  //   peripherals.push({
+  //     id: peripheral.id, // mac address of the peripheral
+  //     name: peripheral.name // descriptive name given to the peripheral
+  //   });
+  //   peripherals = peripherals; // update the array of peripherals
+  // }
 });
 
 bleManagerEmitter.addListener(
   'BleManagerStopScan',
   () => {
-    Alert.alert('scan stopped');
+   
     if(peripherals.length == 0){
-      Alert.alert('Nothing found', "Sorry, no peripherals were found");
+      console.log('Nothing found', "Sorry, no peripherals were found");
+    }else{
+      console.log('Scan result is',peripherals)
     }
     setScanState(false)
     setPheripherals(peripherals)
+    console.log('is_scanning',is_scanning)
    
   }
 );
@@ -104,7 +119,7 @@ const startScan = () =>{
  
   setScanState(true)
   setPheripherals([])
-    BleManager.scan([], 2)
+    BleManager.scan([], 5, false)
       .then(() => { 
         Alert.alert('start scan2')
       }).catch((err)=>{
@@ -112,10 +127,21 @@ const startScan = () =>{
       });
 
 }
+let DeviceOutput;
+// if (peripherals>) {
+//   DeviceOutput = (
+//     <Text>{peripherals}</Text>
+//   )
+// }else{
+//   DeviceOutput = (
+//     <Text>No devices detected</Text>
+//   )
+// }
+DeviceOutput = (<View><Text>{is_scanning}</Text></View>)
   return (
     <View style={styles.container}>
       <Button title='Start Scan' onPress={startScan}/>
-      <Text>{peripherals}</Text>
+   {DeviceOutput}
     </View>
   );
 };
