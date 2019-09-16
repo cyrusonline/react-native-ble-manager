@@ -19,7 +19,9 @@ import {
   NativeEventEmitter,
   NativeModules,
   FlatList,
-  Alert
+  Alert,
+  Button,
+  Platform
 
 } from 'react-native';
 
@@ -44,9 +46,33 @@ BleManager.enableBluetooth()
 .catch((error) => {
   Alert.alert('You need to enable bluetooth to use this app.');
 });
+
+BleManager.start({showAlert: false})
+.then(() => {
+  Alert.alert('Module initialized');
+});
+
+
+
+
+const App = () => {
+const [is_scanning, setScanState] = useState(false)
+const [peripherals, setPheripherals] = useState(['kkk'])
+
+if(Platform.OS === 'android' && Platform.Version >= 23){
+  PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+    if(!result){
+      PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+        if(!result){
+          Alert.alert('You need to give access to coarse location to use this app.');
+        }
+      });
+    }
+});
+}
 bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral) => {
 
-  var peripherals = this.peripherals; // get the peripherals
+  var peripherals = peripherals; // get the peripherals
   // check if the peripheral already exists 
   var el = peripherals.filter((el) => {
     return el.id === peripheral.id;
@@ -57,100 +83,47 @@ bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral) => {
       id: peripheral.id, // mac address of the peripheral
       name: peripheral.name // descriptive name given to the peripheral
     });
-    this.peripherals = peripherals; // update the array of peripherals
+    peripherals = peripherals; // update the array of peripherals
   }
 });
-const App = () => {
-const [is_scanning, setScanState] = useState(false)
-const [peripherals, setPheripherals] = useState(null)
+
+bleManagerEmitter.addListener(
+  'BleManagerStopScan',
+  () => {
+    Alert.alert('scan stopped');
+    if(peripherals.length == 0){
+      Alert.alert('Nothing found', "Sorry, no peripherals were found");
+    }
+    setScanState(false)
+    setPheripherals(peripherals)
+   
+  }
+);
+
 const startScan = () =>{
+ 
   setScanState(true)
   setPheripherals([])
+    BleManager.scan([], 2)
+      .then(() => { 
+        Alert.alert('start scan2')
+      }).catch((err)=>{
+        Alert.alert(err)
+      });
+
 }
   return (
-    <Fragment>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </Fragment>
+    <View style={styles.container}>
+      <Button title='Start Scan' onPress={startScan}/>
+      <Text>{peripherals}</Text>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+ container:{
+  padding:10
+ }
 });
 
 export default App;
