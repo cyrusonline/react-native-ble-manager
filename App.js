@@ -18,10 +18,10 @@ import {
   PermissionsAndroid,
   NativeEventEmitter,
   NativeModules,
-  FlatList,
   Alert,
   Button,
-  Platform
+  Platform,
+  FlatList
 
 } from 'react-native';
 
@@ -127,11 +127,16 @@ let message = 'this si apple'
 //     <Text>No devices detected</Text>
 //   )
 // }
-let DeviceOutput = (<View><Text>{JSON.stringify(peripherals)}</Text></View>)
+let DeviceOutput = (<View><Text>Devices</Text></View>)
   return (
     <View style={styles.container}>
       <Button title='Start Scan' onPress={startScan}/>
    {DeviceOutput}
+   <FlatList
+    data={peripherals}
+    renderItem={({ item }) => <View><Text>{item.id}</Text></View>}
+    keyExtractor={item => item.id}
+   />
  
 
     </View>
