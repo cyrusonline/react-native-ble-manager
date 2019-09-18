@@ -58,6 +58,13 @@ BleManager.start({showAlert: false})
 const App = () => {
 const [is_scanning, setScanState] = useState(false)
 const [peripherals, setPheripherals] = useState([])
+const [newDevice, setNewDevice] = useState()
+const addPeripheralsHandler = ()=>{
+  if( newDevice != undefined){
+    setPheripherals([...peripherals,newDevice])
+
+  }
+}
 
 if(Platform.OS === 'android' && Platform.Version >= 23){
   PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
@@ -71,32 +78,14 @@ if(Platform.OS === 'android' && Platform.Version >= 23){
 });
 }
 bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral) => {
-  console.log('peripheral',peripheral)
+  setNewDevice(peripheral)
+  addPeripheralsHandler()
   // var peripherals = [];
 
-  peripherals.push(peripheral)
+  // peripherals.push(peripheral)
   console.log('total',peripherals)
-  
-  //  setPheripherals(peripherals)
-//   var peripherals = []; // get the peripherals
-//   // check if the peripheral already exists 
-//  console.log('pheriphals',JSON.stringify(peripheral))
-//   peripherals.push({
-//       id: peripheral.id, // mac address of the peripheral
-//       name: peripheral.name // descriptive name given to the peripheral
-//     });
-//     peripherals = peripherals; 
-  // var el = peripherals.filter((el) => {
-  //   return el.id === peripheral.id;
-  // });
+ 
 
-  // if(!el.length){
-  //   peripherals.push({
-  //     id: peripheral.id, // mac address of the peripheral
-  //     name: peripheral.name // descriptive name given to the peripheral
-  //   });
-  //   peripherals = peripherals; // update the array of peripherals
-  // }
 });
 
 bleManagerEmitter.addListener(
@@ -127,7 +116,8 @@ const startScan = () =>{
       });
 
 }
-let DeviceOutput;
+
+let message = 'this si apple'
 // if (peripherals>) {
 //   DeviceOutput = (
 //     <Text>{peripherals}</Text>
@@ -137,11 +127,13 @@ let DeviceOutput;
 //     <Text>No devices detected</Text>
 //   )
 // }
-DeviceOutput = (<View><Text>{is_scanning}</Text></View>)
+let DeviceOutput = (<View><Text>{JSON.stringify(peripherals)}</Text></View>)
   return (
     <View style={styles.container}>
       <Button title='Start Scan' onPress={startScan}/>
    {DeviceOutput}
+ 
+
     </View>
   );
 };
