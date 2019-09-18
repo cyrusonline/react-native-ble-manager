@@ -21,8 +21,7 @@ import {
   Alert,
   Button,
   Platform,
-  FlatList
-
+  FlatList,
 } from 'react-native';
 
 import {
@@ -36,117 +35,115 @@ import {
 import BleManager from 'react-native-ble-manager'; // for talking to BLE peripherals
 const BleManagerModule = NativeModules.BleManager;
 
-
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule); 
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 BleManager.enableBluetooth()
-.then(() => {
-  Alert.alert('Bluetooth is already enabled');
-})
-.catch((error) => {
-  Alert.alert('You need to enable bluetooth to use this app.');
-});
+  .then(() => {
+    Alert.alert('Bluetooth is already enabled');
+  })
+  .catch(error => {
+    Alert.alert('You need to enable bluetooth to use this app.');
+  });
 
-BleManager.start({showAlert: false})
-.then(() => {
+BleManager.start({showAlert: false}).then(() => {
   Alert.alert('Module initialized');
 });
 
-
-
-
 const App = () => {
-const [is_scanning, setScanState] = useState(false)
-const [peripherals, setPheripherals] = useState([])
-const [newDevice, setNewDevice] = useState()
-const addPeripheralsHandler = ()=>{
-  if( newDevice != undefined){
-    setPheripherals([...peripherals,newDevice])
-
-  }
-}
-
-if(Platform.OS === 'android' && Platform.Version >= 23){
-  PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-    if(!result){
-      PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-        if(!result){
-          Alert.alert('You need to give access to coarse location to use this app.');
-        }
-      });
+  const [is_scanning, setScanState] = useState(false);
+  const [peripherals, setPheripherals] = useState([]);
+  const [newDevice, setNewDevice] = useState();
+  const addPeripheralsHandler = () => {
+    if (newDevice != undefined) {
+     
+      setPheripherals([...peripherals, newDevice]);
     }
-});
-}
-bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral) => {
-  setNewDevice(peripheral)
-  addPeripheralsHandler()
-  // var peripherals = [];
+  };
 
-  // peripherals.push(peripheral)
-  console.log('total',peripherals)
- 
-
-});
-
-bleManagerEmitter.addListener(
-  'BleManagerStopScan',
-  () => {
-   
-    if(peripherals.length == 0){
-      console.log('Nothing found', "Sorry, no peripherals were found");
-    }else{
-      console.log('Scan result is',peripherals)
-    }
-    setScanState(false)
-    setPheripherals(peripherals)
-    console.log('is_scanning',is_scanning)
-   
+  if (Platform.OS === 'android' && Platform.Version >= 23) {
+    PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+    ).then(result => {
+      if (!result) {
+        PermissionsAndroid.requestPermission(
+          PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+        ).then(result => {
+          if (!result) {
+            Alert.alert(
+              'You need to give access to coarse location to use this app.',
+            );
+          }
+        });
+      }
+    });
   }
-);
+  bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', peripheral => {
+    setNewDevice(peripheral);
+    addPeripheralsHandler();
+    // var peripherals = [];
 
-const startScan = () =>{
- 
-  setScanState(true)
-  setPheripherals([])
+    // peripherals.push(peripheral)
+    console.log('total', peripherals);
+  });
+
+  bleManagerEmitter.addListener('BleManagerStopScan', () => {
+    if (peripherals.length == 0) {
+      console.log('Nothing found', 'Sorry, no peripherals were found');
+    } else {
+      console.log('Scan result is', peripherals);
+    }
+    setScanState(false);
+    setPheripherals(peripherals);
+    console.log('is_scanning', is_scanning);
+  });
+
+  const startScan = () => {
+    setScanState(true);
+    setPheripherals([]);
     BleManager.scan([], 5, false)
-      .then(() => { 
-        Alert.alert('start scan2')
-      }).catch((err)=>{
-        Alert.alert(err)
+      .then(() => {
+        Alert.alert('start scan2');
+      })
+      .catch(err => {
+        Alert.alert(err);
       });
+  };
 
-}
+  const Item = ({name})=>{
+    return(
+      <View >
+      <Text >The id is {name}</Text>
+    </View>
+    )
+  }
 
-let message = 'this si apple'
-// if (peripherals>) {
-//   DeviceOutput = (
-//     <Text>{peripherals}</Text>
-//   )
-// }else{
-//   DeviceOutput = (
-//     <Text>No devices detected</Text>
-//   )
-// }
-let DeviceOutput = (<View><Text>Devices</Text></View>)
+  let DeviceOutput = (
+    <View>
+      <Text>Devices</Text>
+    </View>
+  );
   return (
     <View style={styles.container}>
-      <Button title='Start Scan' onPress={startScan}/>
-   {DeviceOutput}
-   <FlatList
-    data={peripherals}
-    renderItem={({ item }) => <View><Text>{item.id}</Text></View>}
-    keyExtractor={item => item.id}
-   />
- 
+      <Button title="Start Scan" onPress={startScan} />
+      {DeviceOutput}
+      <FlatList
+        data={peripherals}
+        renderItem={({item}) => (
+          // <View><Text>{item.id}</Text></View>
+         <Item name={item.id} />
+         
 
+        )}
+        keyExtractor={item => item.id}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
- container:{
-  padding:10
- }
+  container: {
+    padding: 10,
+  },
 });
 
 export default App;
